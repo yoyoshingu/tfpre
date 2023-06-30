@@ -53,10 +53,10 @@ def solution_model():
       reader = csv.reader(csvfile, delimiter=',')
       next(reader)
       for row in reader:
-        sunspots.append(# YOUR CODE HERE)
-        time_step.append(# YOUR CODE HERE)
+        sunspots.append(float(row[2]))
+        time_step.append(int(row[0]))
 
-    series = # YOUR CODE HERE
+    series = np.array(sunspots)
 
     # DO NOT CHANGE THIS CODE
     # This is the normalization function
@@ -70,11 +70,12 @@ def solution_model():
     # DO NOT CHANGE THIS CODE
     split_time = 3000
 
+    time_train = time[:split_time]
+    x_train = series[:split_time]
 
-    time_train = # YOUR CODE HERE
-    x_train = # YOUR CODE HERE
-    time_valid = # YOUR CODE HERE
-    x_valid = # YOUR CODE HERE
+    # Get the validation set
+    time_valid = time[split_time:]
+    x_valid = series[split_time:]
 
     # DO NOT CHANGE THIS CODE
     window_size = 30
@@ -83,10 +84,19 @@ def solution_model():
 
 
     train_set = windowed_dataset(x_train, window_size=window_size, batch_size=batch_size, shuffle_buffer=shuffle_buffer_size)
+    valid_set = windowed_dataset(x_valid, window_size=window_size, batch_size=batch_size, shuffle_buffer=shuffle_buffer_size)
 
 
     model = tf.keras.models.Sequential([
-                                        
+        tf.keras.layers.Conv1D(filters=64, kernel_size=3,
+                               strides=1,
+                               activation="relu",
+                               padding='causal',
+                               input_shape=[window_size, 1]),
+        tf.keras.layers.LSTM(64, return_sequences=True),
+        tf.keras.layers.LSTM(64),
+        tf.keras.layers.Dense(30, activation="relu"),
+        tf.keras.layers.Dense(10, activation="relu"),
 
       # YOUR CODE HERE. Whatever your first layer is, the input shape will be [None,1] when using the Windowed_dataset above, depending on the layer type chosen
       tf.keras.layers.Dense(1)
@@ -94,6 +104,25 @@ def solution_model():
 
     # YOUR CODE HERE TO COMPILE AND TRAIN THE MODEL
 
+    learning_rate = 8e-7
+
+    # Set the optimizer
+    optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9)
+
+    # Set the training parameters
+    model.compile(loss=tf.keras.losses.Huber(),
+                  optimizer=optimizer,
+                  metrics=["mae"])
+
+
+    checkpointpath='sunspotb.ckpt'
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        checkpointpath, save_weights_only=True,
+        save_best_only=True, monitor='val_mae', verbose=1)
+
+    # Train the model
+    history = model.fit(train_set,  validation_data=(valid_set),
+                        callbacks=[checkpoint] , epochs=100)
 
 
     return model
@@ -108,6 +137,10 @@ def solution_model():
 
 if __name__ == '__main__':
     model = solution_model()
+
+    checkpointpath = 'sunspotb.ckpt'
+    model.load_weights(checkpointpath)
+
     model.save("TF5-sunspots-type-B.h5")
 
 
