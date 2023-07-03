@@ -38,8 +38,37 @@ def solution_model():
     
     # YOUR CODE HERE
 
+    (training_images, training_labels), (test_images, test_labels) = mnist.load_data()
+    # Normalize the pixel values
+    training_images = training_images / 255.0
+    test_images = test_images / 255.0
 
+    model_simple = tf.keras.models.Sequential([
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation=tf.nn.relu),
+        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+    ])
 
+    model = tf.keras.models.Sequential([
+    #
+    #     # Add convolutions and max pooling
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+
+        # Add the same layers as before
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(10, activation='softmax')
+    ])
+
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+    # Train the model
+    print(f'\nMODEL TRAINING:')
+    model.fit(training_images, training_labels, epochs=10)
+    model.evaluate(test_images, test_labels)
     return model
 
 

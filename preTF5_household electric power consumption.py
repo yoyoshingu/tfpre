@@ -107,21 +107,8 @@ def normalize_series(data, min, max):
 # COMPLETE THE CODE IN THE FOLLOWING FUNCTION.
 def windowed_dataset(series, batch_size, n_past=24, n_future=24, shift=1):
     ds = tf.data.Dataset.from_tensor_slices(series)
-    # This line converts the dataset into a windowed dataset where a
-    # window consists of both the observations to be included as features
-    # and the targets.
-    # Don't change the shift parameter. The test windows are
-    # created with the specified shift and hence it might affect your
-    # scores. Calculate the window size so that based on
-    # the past 24 observations
-    # (observations at time steps t=1,t=2,...t=24) of the 7 variables
-    # in the dataset, you predict the next 24 observations
-    # (observations at time steps t=25,t=26....t=48) of the 7 variables
-    # of the dataset.
-    # Hint: Each window should include both the past observations and
-    # the future observations which are to be predicted. Calculate the
-    # window size based on n_past and n_future.
-    ds = ds.window(size=  # YOUR CODE HERE,
+
+    ds = ds.window(size=  (n_past + n_future), # YOUR CODE HERE,
                    shift = shift,
                            drop_remainder = True)
     # This line converts the windowed dataset into a tensorflow dataset.
@@ -133,8 +120,11 @@ def windowed_dataset(series, batch_size, n_past=24, n_future=24, shift=1):
     # dataset to it's respective (features, targets).
     ds = ds.map(
         # YOUR CODE HERE
+        lambda w: (w[:n_past], w[n_past:])
     )
     return ds.batch(batch_size).prefetch(1)
+
+
 
 
 # This function loads the data from csv file, normalizes the data and
@@ -196,18 +186,30 @@ def solution_model():
         # (BATCH_SIZE, N_FUTURE = 24, N_FEATURES = 7).
         # Make sure that there are N_FEATURES = 7 neurons in the final dense
         # layer since the model predicts 7 features.
+
+        tf.keras.layers.Conv1D(filters=32, kernel_size=3,
+                               strides=1,
+                               activation="relu",
+                               padding='causal',
+                               input_shape=[N_PAST, 7]),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32, return_sequences=True)),
+        tf.keras.layers.Dense(32, activation="relu"),
+        tf.keras.layers.Dense(16, activation="relu"),
+
         tf.keras.layers.Dense(N_FEATURES)
     ])
     # Code to train and compile the model
-    optimizer =  # YOUR CODE HERE
+    optimizer =  tf.keras.optimizers.Adam(learning_rate=5e-6)# YOUR CODE HERE
     model.compile(
         # YOUR CODE HERE
+        loss='mae', optimizer=optimizer, metrics=['mae']
     )
     model.fit(
         # YOUR CODE HERE
+        train_set, validation_data=(valid_set), epochs=20
     )
     return model
 
 if __name__ == '__main__':
     model = solution_model()
-    model.save("model.h5")
+    model.save("TF5HEPC.h5")

@@ -112,8 +112,8 @@ def solution_model():
     learning_rate = 8e-7
 
     # Set the optimizer
-    optimizer_sunspt = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-5)
+    #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=5e-5)
     # Set the training parameters
     model.compile(loss='mae',
                   optimizer=optimizer,

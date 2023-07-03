@@ -28,16 +28,30 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-data = tfds.load("iris", split=tfds.Split.TRAIN.subsplit(tfds.percent[:80]))
+#data = tfds.load("iris", split=tfds.Split.TRAIN.split(tfds.percent[:80]))
+train_dataset = tfds.load('iris', split='train[:80%]')
+valid_dataset = tfds.load('iris', split='train[80%:]')
 
 def preprocess(data):
     # YOUR CODE HERE
     # Should return features and one-hot encoded labels
-
+    x = data['features']
+    y = data['label']
+    y = tf.one_hot(y, 3)
     return x, y
 
 def solution_model():
-    train_dataset = data.map(preprocess).batch(10)
+    train_data = train_dataset.map(preprocess).batch(10)
+    valid_data = valid_dataset.map(preprocess).batch(10)
+    model = tf.keras.models.Sequential([
+        # input_shape는 X의 feature 갯수가 4개 이므로 (4, )로 지정합니다.
+        tf.keras.layers.Dense(64, activation='relu', input_shape=(4,)),
+        tf.keras.layers.Dense(32, activation='relu'),
+        # Classification을 위한 Softmax, 클래스 갯수 = 3개
+        tf.keras.layers.Dense(3, activation='softmax'),
+    ])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
+    history = model.fit(train_data, validation_data=(valid_data), epochs=20)
     
 
     # YOUR CODE TO TRAIN A MODEL HERE
