@@ -1,6 +1,6 @@
 
 # 본 코드는 데이터셋을 임의로 다운로드 받기 위한 코드이므로, 시험 보실 때는 포함하지 않습니다.
-get_ipython().system('wget -O Weekly_U.S.Diesel_Retail_Prices.csv https://www.dropbox.com/s/eduk281didil1km/Weekly_U.S.Diesel_Retail_Prices.csv?dl=1 ')
+#get_ipython().system('wget -O Weekly_U.S.Diesel_Retail_Prices.csv https://www.dropbox.com/s/eduk281didil1km/Weekly_U.S.Diesel_Retail_Prices.csv?dl=1 ')
 
 
 # In[ ]:
@@ -76,21 +76,52 @@ def solution_model():
                                  n_past=N_PAST, n_future=N_FUTURE,
                                  shift=SHIFT)
     # Code to define your model.
-    model = tf.keras.models.Sequential([
-  
+
+    model_sunspot = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=64, kernel_size=3,
+                               strides=1,
+                               activation="relu",
+                               padding='causal',
+                               input_shape=[N_PAST, 1]),
+        tf.keras.layers.LSTM(64, return_sequences=True),
+        tf.keras.layers.LSTM(64),
+        tf.keras.layers.Dense(30, activation="relu"),
+        tf.keras.layers.Dense(10, activation="relu"),
         
         
         tf.keras.layers.Dense(N_FEATURES)
     ])
-    
-    # Code to train and compile the model
-    optimizer =  # YOUR CODE HERE
-    model.compile(
-        # YOUR CODE HERE
-    )
-    model.fit(
-        # YOUR CODE HERE
-    )
+
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=32, kernel_size=3,
+                               strides=1,
+                               activation="relu",
+                               padding='causal',
+                               input_shape=[N_PAST, 1]),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32, return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32, return_sequences=True)),
+        tf.keras.layers.Dense(32, activation="relu"),
+        tf.keras.layers.Dense(16, activation="relu"),
+
+        tf.keras.layers.Dense(N_FEATURES)
+    ])
+
+    model.summary()
+
+    # Set the learning rate
+    learning_rate = 8e-7
+
+    # Set the optimizer
+    optimizer_sunspt = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-5)
+    # Set the training parameters
+    model.compile(loss='mae',
+                  optimizer=optimizer,
+                  metrics=["mae"])
+
+    # Train the model
+    history = model.fit(train_set, validation_data=(valid_set), epochs=200)
+
     return model
 
 if __name__ == '__main__':
