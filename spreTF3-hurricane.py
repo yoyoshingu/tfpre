@@ -129,8 +129,8 @@ def solution_model():
     # Code to compile and train the model
     model.compile(
         # YOUR CODE HERE
-        optimizer='rmsprop',  # ,또는  adam
-        loss='sparse_categorical_crossentropy',
+        optimizer='adam',  # ,또는  rmsprop adam
+        loss='binary_crossentropy',
         metrics=['accuracy']
     )
 
