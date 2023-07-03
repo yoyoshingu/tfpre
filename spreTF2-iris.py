@@ -43,12 +43,24 @@ def preprocess(data):
 def solution_model():
     train_data = train_dataset.map(preprocess).batch(10)
     valid_data = valid_dataset.map(preprocess).batch(10)
-    model = tf.keras.models.Sequential([
+    model1 = tf.keras.models.Sequential([
         # input_shape는 X의 feature 갯수가 4개 이므로 (4, )로 지정합니다.
         tf.keras.layers.Dense(64, activation='relu', input_shape=(4,)),
         tf.keras.layers.Dense(32, activation='relu'),
         # Classification을 위한 Softmax, 클래스 갯수 = 3개
         tf.keras.layers.Dense(3, activation='softmax'),
+    ])
+
+    from tensorflow.keras.layers import Dense
+    model = tf.keras.models.Sequential([
+        # input_shape는 X의 feature 갯수가 4개 이므로 (4, )로 지정합니다.
+        Dense(512, activation='relu', input_shape=(4,)),
+        Dense(256, activation='relu'),
+        Dense(128, activation='relu'),
+        Dense(64, activation='relu'),
+        Dense(32, activation='relu'),
+        # Classification을 위한 Softmax, 클래스 갯수 = 3개
+        Dense(3, activation='softmax'),
     ])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
     history = model.fit(train_data, validation_data=(valid_data), epochs=20)
