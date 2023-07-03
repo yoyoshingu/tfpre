@@ -63,7 +63,7 @@ def download_and_extract_data():
 # COMPLETE THE CODE IN THIS FUNCTION
 def preprocess(image, label):
     # NORMALIZE YOUR IMAGES HERE (HINT: Rescale by 1/.255)
-
+    image = image / 255.0
     return image, label
 
 
@@ -118,18 +118,27 @@ def solution_model():
         # The input layer of your model must have an input shape of
         # (30,30,3).
         # Make sure your last layer has 43 neurons activated by softmax.
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 3)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dense(43, activation=tf.nn.softmax)
     ])
 
     # Code to compile and train the model
     model.compile(
-
         # YOUR CODE HERE
+        optimizer='rmsprop',  # ,
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
     )
 
     model.fit(
-
-        # YOUR CODE HERE
+        train_ds,
+        epochs=10, # orginal 15
+        validation_data=val_ds
     )
 
     return model

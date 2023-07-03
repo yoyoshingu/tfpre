@@ -39,18 +39,37 @@ dataset, info = tfds.load(name=dataset_name, split=tfds.Split.TRAIN, with_info=T
 
 def preprocess(data):
     # YOUR CODE HERE
-
+    x = data['image']
+    y = data['label']
+    x = x /255
+    x = tf.image.resize(x, size=(300, 300))
     return x, y
 
 
 def solution_model():
     train_dataset = dataset.map(preprocess).batch(32)
 
-    model = Sequential([
-    
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(300, 300, 3)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        # Flatten the results to feed into a DNN
+        tf.keras.layers.Flatten(),
+        # 512 neuron hidden layer
+        tf.keras.layers.Dense(512, activation='relu'),
     # YOUR CODE HERE, BUT MAKE SURE YOUR LAST LAYER HAS 2 NEURONS ACTIVATED BY SOFTMAX
         tf.keras.layers.Dense(2, activation='softmax')
     ])
+
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    history = model.fit(
+        train_dataset,
+        epochs=10)   # 10~25 epoch 추천
+
     return model
 
 

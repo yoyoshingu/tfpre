@@ -60,7 +60,8 @@ def preprocess(image, label):
     # RESIZE YOUR IMAGES HERE (HINT: After resizing the shape of the images
     # should be (300, 300, 3).
     # NORMALIZE YOUR IMAGES HERE (HINT: Rescale by 1/.255))
-
+    image /= 255
+    image = tf.image.resize(image, size=(300,300))
     return image, label
 
 
@@ -77,7 +78,7 @@ def solution_model():
         as_supervised=True,
         with_info=True)
 
-    BATCH_SIZE = # YOUR CODE HERE
+    BATCH_SIZE = 32 # YOUR CODE HERE
 
     # Resizes and normalizes train and validation datasets using the
     # preprocess() function.
@@ -101,16 +102,28 @@ def solution_model():
         # (300,300,3).
         # Make sure that your last layer has 3 (number of classes) neurons
         # activated by softmax.
+
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 3)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dense(3, activation='softmax'),
     ])
 
     # Code to compile and train the model
     model.compile(
         # YOUR CODE HERE
+        optimizer='rmsprop',  # ,또는  adam
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
     )
 
     model.fit(
-        # YOUR CODE HERE
+        ds_train,
+        epochs=10, # orginal 15
+        validation_data=ds_validation
     )
     return model
 

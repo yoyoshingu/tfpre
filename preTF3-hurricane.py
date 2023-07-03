@@ -58,13 +58,14 @@ def download_and_extract_data():
     url = 'https://storage.googleapis.com/download.tensorflow.org/data/certificate/satellitehurricaneimages.zip'
     urllib.request.urlretrieve(url, 'satellitehurricaneimages.zip')
     with zipfile.ZipFile('satellitehurricaneimages.zip', 'r') as zip_ref:
-        zip_ref.extractall()
+        zip_ref.extractall('hurricane')
 
 # This function normalizes the images.
 # COMPLETE THE CODE IN THIS FUNCTION
 def preprocess(image, label):
     # NORMALIZE YOUR IMAGES HERE (HINT: Rescale by 1/.255)
-
+    image /= 255
+    image = tf.image.resize(image, size=(128, 128))
     return image, label
 
 
@@ -87,13 +88,13 @@ def solution_model():
     # argument for both training and validation data.
     # HINT: Image size is a tuple
     train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        directory='train/',
-        image_size=  # YOUR CODE HERE
+        directory='hurricane/train/',
+        image_size= (IMG_SIZE, IMG_SIZE) # YOUR CODE HERE
         , batch_size=BATCH_SIZE)
 
     val_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        directory='validation/',
-        image_size=  # YOUR CODE HERE
+        directory='hurricane/validation/',
+        image_size= (IMG_SIZE, IMG_SIZE) # YOUR CODE HERE
         , batch_size=BATCH_SIZE)
 
     # Normalizes train and validation datasets using the
@@ -111,7 +112,12 @@ def solution_model():
     # Code to define the model
     model = tf.keras.models.Sequential([
         # ADD LAYERS OF THE MODEL HERE
-
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 3)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
         # If you don't adhere to the instructions in the following comments,
         # tests will fail to grade your model:
         # The input layer of your model must have an input shape of
@@ -122,13 +128,16 @@ def solution_model():
 
     # Code to compile and train the model
     model.compile(
-
         # YOUR CODE HERE
+        optimizer='rmsprop',  # ,또는  adam
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
     )
 
     model.fit(
-
-        # YOUR CODE HERE
+        train_ds,
+        epochs=10, # orginal 15
+        validation_data=val_ds
     )
 
     return model
