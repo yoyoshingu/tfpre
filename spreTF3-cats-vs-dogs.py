@@ -71,7 +71,7 @@ def solution_model():
                   metrics=['accuracy'])
     history = model.fit(
         train_dataset,
-        epochs=25  )
+        epochs=10  )
 
     return model
 

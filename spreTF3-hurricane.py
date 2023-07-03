@@ -134,10 +134,17 @@ def solution_model():
         metrics=['accuracy']
     )
 
+
+    checkpointpath='hurricane.ckpt'
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        checkpointpath, save_weights_only=True,
+        save_best_only=True, monitor='val_accuracy', verbose=1)
+
     model.fit(
         train_ds,
         epochs=10, # orginal 15
-        validation_data=val_ds
+        validation_data=val_ds,
+        callbacks=[checkpoint]
     )
 
     return model
@@ -149,4 +156,8 @@ def solution_model():
 # and the score will be returned to you.
 if __name__ == '__main__':
     model = solution_model()
+
+    checkpointpath = 'hurricane.ckpt'
+    model.load_weights(checkpointpath)
+
     model.save("mymodel.h5")
